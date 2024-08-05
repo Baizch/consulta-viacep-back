@@ -9,11 +9,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api")
 public class ViaCepController {
     private final ViaCepService viaCepService;
+    private static final Logger logger = LoggerFactory.getLogger(ViaCepController.class);
 
     @Autowired
     public ViaCepController(ViaCepService viaCepService) {
@@ -22,8 +25,13 @@ public class ViaCepController {
 
     @GetMapping("/cep/{cep}")
     public Mono<ResponseEntity<Address>> getAddressByCep(@PathVariable String cep) {
+        logger.info("Received request for CEP: {}", cep);
         return viaCepService.getAddressByCep(cep)
-                .map(address -> ResponseEntity.ok(address))
-                .defaultIfEmpty(ResponseEntity.notFound().build());
+                .map(address -> {
+                    logger.info("Returning address for CEP: {}", cep);
+                    return ResponseEntity.ok(address);
+                })
+                .doOnError(error -> logger.error("Error processing request for CEP {}: {}", cep, error.getMessage()))
+                .onErrorResume(error -> Mono.just(ResponseEntity.status(500).build()));
     }
 }
