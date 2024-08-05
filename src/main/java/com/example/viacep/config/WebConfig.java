@@ -6,12 +6,18 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins("https://consulta-viacep-frontend.vercel.app")
-                .allowedMethods("GET", "POST", "PUT", "DELETE")
-                .allowedHeaders("*")
-                .allowCredentials(true);
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**")
+                        .allowedOrigins("https://consulta-viacep-frontend.vercel.app")
+                        .allowedMethods("*")
+                        .allowedHeaders("*")
+                        .allowCredentials(true);
+                System.out.println("CORS configuration applied");
+            }
+        };
     }
 }
